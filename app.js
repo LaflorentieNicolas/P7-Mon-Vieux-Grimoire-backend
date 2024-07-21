@@ -1,10 +1,12 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const userRoutes = require("./routes/user");
+const bookRoutes = require("./routes/book");
 
 const app = express();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 mongoose
   .connect(
@@ -42,5 +44,6 @@ app.options("*", (req, res) => {
 });
 
 app.use("/api/auth", userRoutes);
+app.use("/api/books", bookRoutes);
 
 module.exports = app;
