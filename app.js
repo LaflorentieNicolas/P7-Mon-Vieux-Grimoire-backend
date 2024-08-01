@@ -9,12 +9,13 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+require("dotenv").config();
+
+const mongoURI = process.env.MONGO_URI;
 mongoose
-  .connect(
-    "mongodb+srv://Laflo:YppkJAEZ2N6B6TLm@cluster0.wf45vk6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-  )
+  .connect(mongoURI)
   .then(() => console.log("Connexion à MongoDB réussie !"))
-  .catch(() => console.log("Connexion à MongoDB échouée !"));
+  .catch((err) => console.error("Connexion à MongoDB échouée :", err));
 
 // Middleware pour configurer les en-têtes CORS
 app.use((req, res, next) => {
