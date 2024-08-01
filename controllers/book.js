@@ -97,3 +97,44 @@ exports.getAllBooks = (req, res, next) => {
       });
     });
 };
+
+exports.rateBook = (req, res, next) => {
+  const { rating } = req.body; // Extraction de la note de la requête
+  // Vérification que la note est comprise entre 0 et 5
+  if (rating < 0 || rating > 5) {
+    return res
+      .status(400)
+      .json({ message: "La note doit-être comprise entre 0 et 5" });
+  }
+
+  // Recherche du livre dans la base de données par son ID
+  Book.findOne({ _id: req.params.id })
+    .then((book) => {
+      // Si le livre n'est pas trouvé, retourner une réponse 404
+      if (!book) {
+        return res.status(404).json({ message: "Livre non trouvé." });
+      }
+
+      // Vérifier si l'utilisateur a déjà noté ce livre
+      const userRating = book.ratings.find((r) => r.userId === req.auth.userId);
+      if (userRating) {
+        // Si l'utilisateur a déjà noté, retourner une réponse 400
+        return res
+          .status(400)
+          .json({ message: "Vous avez déjà noté ce livre." });
+      }
+
+      // Ajouter la nouvelle note au tableau des notes du livre
+      book.ratings.push({ userId: req.auth.userId, grade: rating });
+      // Calculer la nouvelle note moyenne
+      book.averageRating =
+        book.ratings.reduce((sum, r) => sum + r.grade, 0) / book.ratings.length;
+
+      // Enregistrer le livre mis à jour dans la base de données
+      book
+        .save()
+        .then(() => res.status(200).json(book)) // Retourner le livre mis à jour en réponse
+        .catch((error) => res.status(500).json({ error })); // Gérer les erreurs de sauvegarde
+    })
+    .catch((error) => res.status(500).json({ error })); // Gérer les erreurs de recherche du livre
+};
