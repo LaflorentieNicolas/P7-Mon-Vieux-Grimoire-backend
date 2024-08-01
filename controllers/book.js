@@ -138,3 +138,15 @@ exports.rateBook = (req, res, next) => {
     })
     .catch((error) => res.status(500).json({ error })); // Gérer les erreurs de recherche du livre
 };
+
+exports.getBestRatedBooks = (req, res, next) => {
+  Book.find()
+    .sort({ averageRating: -1 }) // Trier par note moyenne décroissante
+    .limit(3) // Limiter le résultat à 3 livres
+    .then((books) => {
+      res.status(200).json(books);
+    })
+    .catch((error) => {
+      res.status(500).json({ error });
+    });
+};
