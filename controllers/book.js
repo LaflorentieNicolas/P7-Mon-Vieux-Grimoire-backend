@@ -21,7 +21,13 @@ exports.createBook = (req, res, next) => {
       !bookObject.genre?.trim() ||
       !req.file;
 
-    if (missingFields) {
+    // Vérification de l'année (1 à 4 chiffres) et qu'elle ne dépasse pas l'année en cours
+    const currentYear = new Date().getFullYear();
+    const validYear =
+      /^\d{1,4}$/.test(bookObject.year) &&
+      Number(bookObject.year) <= currentYear;
+
+    if (missingFields || !validYear) {
       // Supprimer l'image téléchargée
       deleteUploadedFile(req.file);
       return res.status(400).json({
