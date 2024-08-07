@@ -197,7 +197,7 @@ exports.rateBook = (req, res, next) => {
       // Calculer la nouvelle note moyenne et arrondir à deux chiffres après la virgule
       const totalRatings = book.ratings.reduce((sum, r) => sum + r.grade, 0);
       book.averageRating =
-        Math.round((totalRatings / book.ratings.length) * 100) / 100;
+        Math.round((totalRatings / book.ratings.length) * 10) / 10;
 
       // Sauvegarder le livre avec la nouvelle note
       book
