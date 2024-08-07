@@ -77,22 +77,32 @@ exports.getOneBook = (req, res, next) => {
 
 exports.modifyBook = (req, res, next) => {
   const isImageProvided = !!req.file;
-  const bookObject = isImageProvided
-    ? {
-        title: req.body.title,
-        author: req.body.author,
-        year: req.body.year,
-        genre: req.body.genre,
-        imageUrl: `${req.protocol}://${req.get("host")}/images/${
-          req.file.filename
-        }`,
-      }
-    : {
-        title: req.body.title,
-        author: req.body.author,
-        year: req.body.year,
-        genre: req.body.genre,
-      };
+
+  const bookObject = {
+    title: req.body.title.trim(),
+    author: req.body.author.trim(),
+    year: req.body.year,
+    genre: req.body.genre.trim(),
+  };
+
+  const missingFields =
+    !bookObject.title ||
+    !bookObject.author ||
+    !bookObject.year ||
+    !bookObject.genre;
+
+  const currentYear = new Date().getFullYear();
+  const validYear =
+    /^\d{1,4}$/.test(bookObject.year) && Number(bookObject.year) <= currentYear;
+
+  if (missingFields || !validYear) {
+    if (isImageProvided) {
+      deleteUploadedFile({ filename: req.file.filename });
+    }
+    return res.status(400).json({
+      message: "Tous les champs sont requis.",
+    });
+  }
 
   Book.findOne({ _id: req.params.id })
     .then((book) => {
@@ -108,9 +118,16 @@ exports.modifyBook = (req, res, next) => {
         deleteUploadedFile({ filename: book.imageUrl.split("/images/")[1] });
       }
 
+      // Met à jour le livre avec les nouvelles données
       Book.updateOne(
         { _id: req.params.id },
-        { ...bookObject, _id: req.params.id }
+        {
+          ...bookObject,
+          _id: req.params.id,
+          imageUrl: isImageProvided
+            ? `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
+            : book.imageUrl,
+        }
       )
         .then(() => res.status(200).json({ message: "Livre modifié !" }))
         .catch((error) =>
