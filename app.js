@@ -18,7 +18,7 @@ mongoose
   .catch((err) => console.error("Connexion à MongoDB échouée :", err));
 
 // Middleware pour configurer les en-têtes CORS
-app.use((req, res, next) => {
+const corsMiddleware = (req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Headers",
@@ -28,22 +28,13 @@ app.use((req, res, next) => {
     "Access-Control-Allow-Methods",
     "GET, POST, PUT, DELETE, PATCH, OPTIONS"
   );
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
   next();
-});
+};
 
-// Gestion des requêtes préliminaires OPTIONS
-app.options("*", (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content, Accept, Content-Type, Authorization"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-  );
-  res.sendStatus(200);
-});
+app.use(corsMiddleware);
 
 app.use("/api/auth", userRoutes);
 app.use("/api/books", bookRoutes);
