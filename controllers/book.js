@@ -13,25 +13,28 @@ exports.createBook = (req, res, next) => {
   try {
     const bookObject = JSON.parse(req.body.book);
 
+    // Vérification des champs requis
     const missingFields =
-      !bookObject.title ||
-      !bookObject.author ||
+      !bookObject.title?.trim() ||
+      !bookObject.author?.trim() ||
       !bookObject.year ||
-      !bookObject.genre ||
+      !bookObject.genre?.trim() ||
       !req.file;
+
     if (missingFields) {
+      // Supprimer l'image téléchargée
       deleteUploadedFile(req.file);
-      return res
-        .status(400)
-        .json({ message: "Tous les champs sont requis, y compris l'image." });
+      return res.status(400).json({
+        message: "Tous les champs sont requis, y compris l'image.",
+      });
     }
 
     const book = new Book({
       userId: req.auth.userId,
-      title: bookObject.title,
-      author: bookObject.author,
+      title: bookObject.title.trim(),
+      author: bookObject.author.trim(),
       year: bookObject.year,
-      genre: bookObject.genre,
+      genre: bookObject.genre.trim(),
       ratings: [
         { userId: req.auth.userId, grade: bookObject.ratings[0].grade },
       ],
