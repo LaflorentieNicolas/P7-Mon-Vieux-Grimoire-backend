@@ -78,47 +78,57 @@ exports.getOneBook = (req, res, next) => {
 exports.modifyBook = (req, res, next) => {
   const isImageProvided = !!req.file;
 
-  const bookObject = {
-    title: req.body.title.trim(),
-    author: req.body.author.trim(),
-    year: req.body.year,
-    genre: req.body.genre.trim(),
-  };
-
-  const missingFields =
-    !bookObject.title ||
-    !bookObject.author ||
-    !bookObject.year ||
-    !bookObject.genre;
-
-  const currentYear = new Date().getFullYear();
-  const validYear =
-    /^\d{1,4}$/.test(bookObject.year) && Number(bookObject.year) <= currentYear;
-
-  if (missingFields || !validYear) {
-    if (isImageProvided) {
-      deleteUploadedFile({ filename: req.file.filename });
-    }
-    return res.status(400).json({
-      message: "Tous les champs sont requis.",
-    });
-  }
-
+  // Rechercher le livre pour obtenir les valeurs actuelles des champs
   Book.findOne({ _id: req.params.id })
     .then((book) => {
       if (!book) {
+        if (isImageProvided) {
+          deleteUploadedFile({ filename: req.file.filename });
+        }
         return res.status(404).json({ message: "Livre non trouvé." });
       }
 
       if (book.userId !== req.auth.userId) {
+        if (isImageProvided) {
+          deleteUploadedFile({ filename: req.file.filename });
+        }
         return res.status(403).json({ message: "403: unauthorized request" });
       }
 
+      // Conserver les valeurs actuelles pour les champs non envoyés dans la requête
+      const bookObject = {
+        title: req.body.title ? req.body.title.trim() : book.title,
+        author: req.body.author ? req.body.author.trim() : book.author,
+        year: req.body.year ? req.body.year : book.year,
+        genre: req.body.genre ? req.body.genre.trim() : book.genre,
+      };
+
+      const currentYear = new Date().getFullYear();
+      const validYear =
+        /^\d{1,4}$/.test(bookObject.year) &&
+        Number(bookObject.year) <= currentYear;
+
+      if (
+        !bookObject.title ||
+        !bookObject.author ||
+        !bookObject.year ||
+        !bookObject.genre ||
+        !validYear
+      ) {
+        if (isImageProvided) {
+          deleteUploadedFile({ filename: req.file.filename });
+        }
+        return res.status(400).json({
+          message: "Tous les champs sont requis ou l'année est invalide.",
+        });
+      }
+
+      // Si une nouvelle image est fournie, supprimer l'ancienne
       if (isImageProvided) {
         deleteUploadedFile({ filename: book.imageUrl.split("/images/")[1] });
       }
 
-      // Met à jour le livre avec les nouvelles données
+      // Mettre à jour le livre avec les nouvelles données
       Book.updateOne(
         { _id: req.params.id },
         {
