@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const userRoutes = require("./routes/user");
 const bookRoutes = require("./routes/book");
 const path = require("path");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 
@@ -35,6 +37,24 @@ const corsMiddleware = (req, res, next) => {
 };
 
 app.use(corsMiddleware);
+
+// Configurer helmet avec des règles CSP spécifiques
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      imgSrc: ["'self'", "data:"],
+    },
+  })
+);
+
+const limiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 100,
+  message: "Too Many Requests",
+});
+
+app.use(limiter);
 
 app.use("/api/auth", userRoutes);
 app.use("/api/books", bookRoutes);
