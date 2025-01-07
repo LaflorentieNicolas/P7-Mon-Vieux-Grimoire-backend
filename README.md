@@ -41,7 +41,6 @@ Pour compléter le projet, je dois utiliser Mongoose pour modéliser les donnée
 - Installation et configuration d’un environnement de développement avec Node.js, NPM et les dépendances nécessaires.
 - Création d’une première application Express et test de son bon fonctionnement.
 - Mise en place d’un système de routage simple pour gérer les requêtes HTTP.
-- Attention particulière à la cohérence des noms dans le code : adaptation des concepts génériques de “thing” aux “books” (livres).
 
 ### 2. Connexion à MongoDB et modèle de données
 - Installation et configuration de MongoDB pour la base de données.
